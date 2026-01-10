@@ -14,6 +14,19 @@
 #include <linux/compiler_types.h>
 #endif
 
+/* ===== Kernel compatibility ===== */
+#ifndef TWA_RESUME
+#define TWA_RESUME TWA_SIGNAL
+#endif
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,4,0)
+static inline void put_task_struct(struct task_struct *tsk)
+{
+	put_task_stack(tsk);
+}
+#endif
+/* ================================ */
+
 #include "klog.h" // IWYU pragma: keep
 #include "ksud.h"
 #include "selinux/selinux.h"
