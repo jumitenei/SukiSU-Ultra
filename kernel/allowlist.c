@@ -14,17 +14,6 @@
 #include <linux/compiler_types.h>
 #endif
 
-/* ===== task_work compatibility ===== */
-#ifndef TWA_RESUME
-#define TWA_RESUME TWA_SIGNAL
-#endif
-/* ================================== */
-
-/* ===== Kernel compatibility ===== */
-#ifndef TWA_RESUME
-#define TWA_RESUME TWA_SIGNAL
-#endif
-
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5,4,0)
 static inline void put_task_struct(struct task_struct *tsk)
 {
@@ -443,6 +432,11 @@ void persistent_allow_list()
         goto put_task;
     }
     cb->func = do_persistent_allow_list;
+    /*
+     * On this kernel, task_work_add() takes a boolean "notify"
+     * argument instead of TWA_* flags.
+     */
+    task_work_add(tsk, cb, true);
 	/*
 	 * Older kernels (4.9 / 4.14 / 4.19) do not support TWA_RESUME,
 	 * and some only support the 2-arg form of task_work_add().
