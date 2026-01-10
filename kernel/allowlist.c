@@ -14,6 +14,12 @@
 #include <linux/compiler_types.h>
 #endif
 
+/* ===== task_work compatibility ===== */
+#ifndef TWA_RESUME
+#define TWA_RESUME TWA_SIGNAL
+#endif
+/* ================================== */
+
 /* ===== Kernel compatibility ===== */
 #ifndef TWA_RESUME
 #define TWA_RESUME TWA_SIGNAL
@@ -437,7 +443,15 @@ void persistent_allow_list()
         goto put_task;
     }
     cb->func = do_persistent_allow_list;
-    task_work_add(tsk, cb, TWA_RESUME);
+	/*
+	 * Older kernels (4.9 / 4.14 / 4.19) do not support TWA_RESUME,
+	 * and some only support the 2-arg form of task_work_add().
+	 */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0)
+	task_work_add(tsk, cb, TWA_RESUME);
+#else
+	task_work_add(tsk, cb);
+#endif
 
 put_task:
     put_task_struct(tsk);
