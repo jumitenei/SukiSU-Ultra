@@ -10,18 +10,6 @@
 #include <linux/ptrace.h>
 #include <trace/events/syscalls.h>
 #include <linux/namei.h>
-#include <linux/version.h>
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)
-static inline long strncpy_from_user_nofault(char *dst, const void __user *unsafe_ptr, long count)
-{
-	return strncpy_from_user(dst, unsafe_ptr, count);
-}
-#endif
-
-#ifndef __NR_clone3
-#define __NR_clone3 -1
-#endif
 
 #include "allowlist.h"
 #include "arch.h"
@@ -32,6 +20,18 @@ static inline long strncpy_from_user_nofault(char *dst, const void __user *unsaf
 #include "selinux/selinux.h"
 #include "util.h"
 #include "ksud.h"
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)
+static inline long strncpy_from_user_nofault(char *dst, const void __user *unsafe_ptr, long count)
+{
+	// 此时 linux/uaccess.h 已通过前面的头文件间接或直接包含，避免隐式声明错误
+	return strncpy_from_user(dst, unsafe_ptr, count);
+}
+#endif
+
+#ifndef __NR_clone3
+#define __NR_clone3 -1
+#endif
 
 // Tracepoint registration count management
 // == 1: just us
