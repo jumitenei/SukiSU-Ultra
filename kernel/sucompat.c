@@ -20,6 +20,13 @@
 #include "allowlist.h"
 #include "feature.h"
 #include "klog.h" // IWYU pragma: keep
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)
+static inline long strncpy_from_user_nofault(char *dst, const void __user *unsafe_ptr, long count)
+{
+	return strncpy_from_user(dst, unsafe_ptr, count);
+}
+#endif
+
 #include "ksud.h"
 #include "sucompat.h"
 #include "app_profile.h"
