@@ -436,16 +436,6 @@ void persistent_allow_list()
      * On this kernel, task_work_add() takes a boolean "notify"
      * argument instead of TWA_* flags.
      */
-    task_work_add(tsk, cb, true);
-	/*
-	 * Older kernels (4.9 / 4.14 / 4.19) do not support TWA_RESUME,
-	 * and some only support the 2-arg form of task_work_add().
-	 */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,10,0)
-	task_work_add(tsk, cb, TWA_RESUME);
-#else
-	task_work_add(tsk, cb);
-#endif
 
 put_task:
     put_task_struct(tsk);
