@@ -10,6 +10,12 @@
 #include "ksu.h"
 #include "throne_tracker.h"
 
+/* + * 4.14 内核缺少 handle_inode_event 和 fsnotify_add_inode_mark。
+ * 为保证稳定性，在 5.1 版本以下的内核中禁用此观察者功能。
+ */
+#define KSU_FSNOTIFY_SUPPORT (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0))
+
+#if KSU_FSNOTIFY_SUPPORT
 #define MASK_SYSTEM (FS_CREATE | FS_MOVE | FS_EVENT_ON_CHILD)
 
 struct watch_dir {
@@ -112,17 +118,29 @@ int ksu_observer_init(void)
 #else
     g = fsnotify_alloc_group(&ksu_ops);
 #endif
+#else
+	g = NULL;
+#endif
+
     if (IS_ERR(g))
         return PTR_ERR(g);
 
+#if KSU_FSNOTIFY_SUPPORT
     ret = watch_one_dir(&g_watch);
+#endif
     pr_info("observer init done\n");
     return 0;
 }
 
 void ksu_observer_exit(void)
 {
+#if KSU_FSNOTIFY_SUPPORT
     unwatch_one_dir(&g_watch);
+#endif
+
+	if (!g)
+		return;
+
     fsnotify_put_group(g);
     pr_info("observer exit done\n");
 }
